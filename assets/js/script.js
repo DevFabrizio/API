@@ -1,13 +1,40 @@
-const API_KEY = "VZn-Fx2ohpPGHAs_RhP_m6IgxYA";
+const API_KEY = "V4tI8k-Om5h7ula5f4AWeoNEb3U";
 const API_URL = "https://ci-jshint.herokuapp.com/api";
 const resultsModal = new bootstrap.Modal(document.getElementById("resultsModal"));
 
 document.getElementById("status").addEventListener("click", e => getStatus(e));
 document.getElementById("submit").addEventListener("click", e => postForm(e));
 
+function displayException(data) {
+    let heading = 'An Exception Occured'
+    let body = `<div>The API returned status code ${data.status_code}
+                    Error number: ${data.error_no}
+                    Error text: <strong>${data.error}</strong></div>`
+
+    document.getElementById('resultsModalTitle').innerText = heading
+    document.getElementById('results-content').innerHTML = body      
+    resultsModal.show()
+}
+
+function processOptions(form) {
+
+    let optArray = [];
+    
+    for (let entry of form.entries()) {
+        if (entry[0] === 'options') {
+            optArray.push(entry[1])
+        }
+    }
+    form.delete('options')
+    
+    form.append('options', optArray.join())
+
+    return form
+}
+
 async function postForm(e) {
 
-    const form = new FormData(document.getElementById("checksform"));
+    const form = processOptions(new FormData(document.getElementById("checksform")));
 
     const response = await fetch(API_URL, {
         method: "POST",
@@ -22,6 +49,7 @@ async function postForm(e) {
     if (response.ok) {
         displayErrors(data);
     } else {
+        displayException(data)
         throw new Error(data.error);
     }
 
@@ -38,6 +66,7 @@ async function getStatus(e) {
     if (response.ok) {
         displayStatus(data);
     } else {
+        displayException(data)
         throw new Error(data.error);
     }
 
